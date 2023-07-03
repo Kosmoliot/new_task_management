@@ -1,0 +1,20 @@
+			*** Overall User Statistics ***
+
+Total amount of task in Task Manager:					3
+Total amount of users in Task Manager:					2
+
+			*** User's Statistics: admin ***
+
+Total number of tasks assigned:						1      
+The percentage of completed tasks:					100
+The percentage of uncompleted tasks:					0
+The percentage of tasks that overdue:					0
+
+
+			*** User's Statistics: Michail ***
+
+Total number of tasks assigned:						2      
+The percentage of completed tasks:					50
+The percentage of uncompleted tasks:					50
+The percentage of tasks that overdue:					100
+

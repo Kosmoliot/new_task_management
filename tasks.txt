@@ -1,0 +1,3 @@
+Michail, Register Users with task_manager.py, Use task_manager.py to add the usernames and passwords for all team members that will be using this program., 10 Oct 2019, 20 Oct 2019, Yes
+admin, Assign initial tasks, Use task_manager.py to assign each team member with appropriate tasks, 10 Oct 2019, 25 Oct 2019, Yes
+Michail, Find a new job, Use LinkedIn and other websites to look for a new job, 28 Nov 2022, 10 Mar 2023, No
