@@ -5,7 +5,8 @@ from datetime import datetime       # Using module to pull current date data
 users = {}      # Username and password will be stored as a key-value pair
 tasks = {}      # Each line from task file will be stored as value in a dict
 user_tasks = {} # Dictionary to store tasks for each user in 'user: task' pair
-
+menu_input = ""
+username = ""
 
 #====File Access====#
 def user_update():      # Function to create/update 'users' dictionary 
@@ -21,28 +22,26 @@ def tasks_update():     # Function to create/update 'tasks' dictionary
     
 #====Menu Items====#
 def admin_menu():       # Menu to display if user is 'admin'
+    global menu_input
     menu_input = input('''\nSelect one of the following Options below:
-        r\t-\tRegistering a user
-        a\t-\tAdding a task
-        va\t-\tView all tasks
-        vm\t-\tView my task
-        gr\t-\tGenerate reports
-        ds\t-\tDisplay Statistics
-        e\t-\tExit
-        : ''').lower()
-    return menu_input
-    
+r\t-\tRegistering a user
+a\t-\tAdding a task
+va\t-\tView all tasks
+vm\t-\tView my task
+gr\t-\tGenerate reports
+ds\t-\tDisplay Statistics
+e\t-\tExit
+: ''').lower()
     
 def user_menu():        # Default menu to display for users
+    global menu_input
     menu_input = input('''\nSelect one of the following Options below:
-        r\t-\tRegistering a user
-        a\t-\tAdding a task
-        va\t-\tView all tasks
-        vm\t-\tView my task
-        e\t-\tExit
-        : ''').lower()
-    return menu_input
-
+r\t-\tRegistering a user
+a\t-\tAdding a task
+va\t-\tView all tasks
+vm\t-\tView my task
+e\t-\tExit
+: ''').lower()
     
 def load_menu():        # Conditional check to display appropriate menu
     if username == 'admin':
@@ -55,7 +54,7 @@ def display_menu():     # Function to call 'menu' funct and handle user's input
         tasks_update()  # Updating both 'tasks' and 'users' dictionaries
         user_update()
 
-        menu_input = load_menu()     # Checking if user is 'admin' and requesting input
+        load_menu()     # Checking if user is 'admin' and requesting input
         
         if menu_input == 'r' and username == 'admin':
             reg_user()

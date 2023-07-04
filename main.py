@@ -18,9 +18,9 @@ class Menu():
         pass
 
 class User():
-    def __init__(self, username, user_group) -> None:
-        self.name = info['name']
-        self.password = info['password']
+    def __init__(self, username, password, user_group) -> None:
+        self.username = username['name']
+        self.password = password['password']
         
     
 # Menu to display if user is 'admin'
@@ -46,7 +46,7 @@ def login():
             print("Success!")
             user_group = match["group_name"]
             # return User(current_user)
-            return User(user_group, username)            
+            return User(user_group, password, user_group)            
         else:
             print("Incorrect password, try again!")
     else:
