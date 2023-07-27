@@ -1,5 +1,5 @@
 import requests, pymongo
-import json, os
+import os
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 
@@ -19,8 +19,9 @@ class Menu():
 
 class User():
     def __init__(self, username, password, user_group) -> None:
-        self.username = username['name']
-        self.password = password['password']
+        self.username = username
+        self.password = password
+        self.user_group = user_group
         
     
 # Menu to display if user is 'admin'
@@ -39,14 +40,14 @@ def user_menu() -> str:
 
 def login():
     username = input("Please enter your login: \n")
-    if users.find_one(users.find_one({"users.username": username})):
+    if users.find_one({"username": username}):
         password = input("Please type in your password: \n")
-        match = users.find_one({"users.username": username, "users.password": password})
+        match = users.find_one({"username": username, "password": password})
         if match:
             print("Success!")
-            user_group = match["group_name"]
-            # return User(current_user)
-            return User(user_group, password, user_group)            
+            user_group = match["access"]
+            current_user = User(username, password, user_group)  
+            return current_user         
         else:
             print("Incorrect password, try again!")
     else:
@@ -118,6 +119,7 @@ def display_stat():
 #     {"$push": {"users": {"username": "miguel", "password": "pass"}}}  # Use $push to add the embedded document
 # )
 
-login()
+
+print(login().username)
 
 client.close()
