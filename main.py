@@ -9,35 +9,92 @@ MONGODB_URL = os.environ["MONGODB_URL"]
 client = pymongo.MongoClient(MONGODB_URL)
 db = client.task_management
 
-collection = db.tasks
-menu_text = db.text
+tasks = db.tasks
 users = db.users
 
-class Menu():
+class Menu:
     def __init__(self) -> None:
         pass
+    
+    def show_menu(self):
+        print("1. View tasks")
+        print("2. Create task")
+        print("3. Update task")
+        print("4. Exit")
+    
+    def view_tasks(self):
+        print("Displaying tasks")
+    
+    def create_task(self):
+        print("Creating a task")
+
+    def update_task(self):
+        print("Updating a task")
+    
+    def handle_menu_choice(self, choice):
+        if choice == 1:
+            self.view_tasks()
+        elif choice == 2:
+            self.create_task()
+        elif choice == 3:
+            self.update_task()
+        elif choice == 4:
+            print("Exiting...")
+            return False
+        else:
+            print("Invalid choice. Please try again.")
+        return True
+
+class AdminMenu(Menu):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def show_menu(self):
+        print("1. View tasks")
+        print("2. Create task")
+        print("3. Update task")
+        print("4. View statistics")
+        print("5. Generate report")
+        print("6. Register a user")
+        print("7. Exit")
+        
+
+    def view_stats(self):
+        print("Displaying statistics")
+        
+    def generate_reports(self):
+        print("Generating report")
+    
+    def reg_user(self):
+        print("Registering a user")
+        
+    def handle_menu_choice(self, choice):
+        if choice == 1:
+            self.view_tasks()
+        elif choice == 2:
+            self.create_task()
+        elif choice == 3:
+            self.update_task()
+        elif choice == 4:
+            self.view_stats()
+        elif choice == 5:
+            self.generate_reports()
+        elif choice == 6:
+            self.reg_user()
+        elif choice == 7:
+            print("Exiting...")
+            return False
+        else:
+            print("Invalid choice. Please try again.")
+        return True
 
 class User():
     def __init__(self, username, password, user_group) -> None:
         self.username = username
         self.password = password
         self.user_group = user_group
-        
     
-# Menu to display if user is 'admin'
-def admin_menu() -> str:
-    main_menu_txt  = menu_text.find_one({"menu": "admin"}, {"_id": 0, "text": 1})     
-    menu_input = input(main_menu_txt).lower()
-    return menu_input
-
-
-# Default menu to display for users
-def user_menu() -> str: 
-    main_menu_txt  = menu_text.find_one({"menu": "main"}, {"_id": 0, "text": 1})    
-    menu_input = input(main_menu_txt["text"]).lower()
-    return menu_input
     
-
 def login():
     username = input("Please enter your login: \n")
     if users.find_one({"username": username}):
@@ -46,80 +103,34 @@ def login():
         if match:
             print("Success!")
             user_group = match["access"]
-            current_user = User(username, password, user_group)  
-            return current_user         
+            return User(username, password, user_group)           
         else:
             print("Incorrect password, try again!")
     else:
         print("Incorrect login, try again!")
 
 
-def reg_user():
-    pass
-
-def add_task():
-    pass
-
-def view_all():
-    pass
-
-def view_mine():
-    pass
-
-def generate_reports():
-    pass
-
-def display_stat():
-    pass
-
-
-# Function to call 'menu' funct and handle user's input
-# def display_menu(user):     
-    # while True:
+def main():
+    user = login()
+    if user.user_group == "master":
+        menu = AdminMenu()
+    else:
+        menu = Menu()
         
-    #     if 
-    #         reg_user()
-
-    #     elif menu_input == 'a':
-    #         add_task()
-
-    #     elif menu_input == 'va':
-    #         view_all()
-        
-    #     elif menu_input == 'vm':
-    #         view_mine()
-        
-    #     elif menu_input == 'gr' and username == 'admin':
-    #         generate_reports()
-        
-    #     elif menu_input == 'ds' and username == 'admin':
-    #         display_stat()
-
-    #     elif menu_input == 'e':
-    #         print('Goodbye!!!')
-    #         exit()
-            
-    #     else:
-    #         print("\nYou have made a wrong choice, Please Try again")
-
-# user_group("admin")
-
-# for i in users.find({"users.username": "admin"}, {"_id":0, "users.username":1}):
-
-# main_menu_txt  = menu_text.find_one({"menu": "main"}, {"_id": 0, "text": 1})    
-# menu_input = input(main_menu_txt["text"]).lower()
-
-# for i in users.find_one({"users.username": "admin"}, {"_id":0, "users.username":1}):
-#     print(i)
-
+    while True:
+        menu.show_menu()
+        choice = int(input("Enter your choice: "))
+        if not menu.handle_menu_choice(choice):
+            break
 
 # Adding a user to a group of users in database
-# users.update_one(
-#     {"_id": ObjectId("649cb45ccffda00e57610af3")},  # Specify the filter condition
-#     {"$push": {"users": {"username": "miguel", "password": "pass"}}}  # Use $push to add the embedded document
-# )
+# docs = [
+#     {"auth": "miguel", "assigned": "miguel", "task_name": "Register Users with task_manager.py", "task_descr": "Use task_manager.py to add the usernames and passwords for all team members that will be using this program.", "d_created": "10 Oct 2019", "d_completed": "17 Oct 201", "d_deadline": "20 Oct 2019", "status": "yes"},
+#     {"auth": "admin", "assigned": "admin", "task_name": "Assign initial tasks", "task_descr": "Use task_manager.py to assign each team member with appropriate tasks", "d_created": "10 Oct 2019", "d_completed": "21 Oct 2019", "d_deadline": "25 Oct 2019", "status": "yes"},
+#     {"auth": "miguel", "assigned": "miguel", "task_name": "Find a new job", "task_descr": "Use LinkedIn and other websites to look for a new job", "d_created": "28 Nov 2022", "d_completed": "n/a", "d_deadline": "10 Mar 2023", "status": "no"}
+#     ]
 
 
-print(login().username)
+main()
 
 client.close()
