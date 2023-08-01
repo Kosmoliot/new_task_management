@@ -1,1 +1,0 @@
-tasks.delete_many()

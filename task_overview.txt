@@ -1,8 +1,0 @@
-			*** Overall Task Statistics ***
-
-Total number of tasks:							3
-The total number of completed tasks:					2
-The total number of uncompleted tasks:					1
-The total number of uncompleted and overdue tasks:			1
-The percentage of tasks that are incomplete:				33
-The percentage of tasks that overdue:					100
