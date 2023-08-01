@@ -1,1 +1,1 @@
-handle_menu_choice
+tasks.delete_many()

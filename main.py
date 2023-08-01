@@ -1,5 +1,6 @@
-import requests, pymongo
+import pymongo
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 
@@ -22,20 +23,29 @@ class Menu:
         print("3. Update task")
         print("4. Exit")
     
-    def view_tasks(self):
-        print("Displaying tasks")
+    def view_tasks(self, username):
+        cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1})
+        for i in cursor:
+            print(i)
     
-    def create_task(self):
-        print("Creating a task")
+    def create_task(self, username):
+        title = (input("Please enter a title of a task: "))
+        description = (input("Please enter a description of the task: "))
+        deadline = (input("Please enter a due date (DD MMM YYYY): "))
+        created = datetime.today().strftime("%d %b %Y")
+        tasks.insert_one(
+            {"assigned": username, "title": title, "description": description,
+             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"}
+        )
 
     def update_task(self):
         print("Updating a task")
     
-    def handle_menu_choice(self, choice):
+    def handle_menu_choice(self, choice, username):
         if choice == 1:
-            self.view_tasks()
+            self.view_tasks(username)
         elif choice == 2:
-            self.create_task()
+            self.create_task(username)
         elif choice == 3:
             self.update_task()
         elif choice == 4:
@@ -68,11 +78,11 @@ class AdminMenu(Menu):
     def reg_user(self):
         print("Registering a user")
         
-    def handle_menu_choice(self, choice):
+    def handle_menu_choice(self, choice, username):
         if choice == 1:
-            self.view_tasks()
+            self.view_tasks(username)
         elif choice == 2:
-            self.create_task()
+            self.create_task(username)
         elif choice == 3:
             self.update_task()
         elif choice == 4:
@@ -116,20 +126,21 @@ def main():
         menu = AdminMenu()
     else:
         menu = Menu()
-        
+    
     while True:
         menu.show_menu()
         choice = int(input("Enter your choice: "))
-        if not menu.handle_menu_choice(choice):
+        if not menu.handle_menu_choice(choice, user.username):
             break
 
 # Adding a user to a group of users in database
 # docs = [
-#     {"auth": "miguel", "assigned": "miguel", "task_name": "Register Users with task_manager.py", "task_descr": "Use task_manager.py to add the usernames and passwords for all team members that will be using this program.", "d_created": "10 Oct 2019", "d_completed": "17 Oct 201", "d_deadline": "20 Oct 2019", "status": "yes"},
-#     {"auth": "admin", "assigned": "admin", "task_name": "Assign initial tasks", "task_descr": "Use task_manager.py to assign each team member with appropriate tasks", "d_created": "10 Oct 2019", "d_completed": "21 Oct 2019", "d_deadline": "25 Oct 2019", "status": "yes"},
-#     {"auth": "miguel", "assigned": "miguel", "task_name": "Find a new job", "task_descr": "Use LinkedIn and other websites to look for a new job", "d_created": "28 Nov 2022", "d_completed": "n/a", "d_deadline": "10 Mar 2023", "status": "no"}
+#     { "assigned": "miguel", "title": "Register Users with task_manager.py", "description": "Use task_manager.py to add the usernames and passwords for all team members.", "created": "10 Oct 2019", "completed": "17 Oct 201", "deadline": "20 Oct 2019", "status": "yes"},
+#     {"assigned": "admin", "title": "Assign initial tasks", "description": "Use task_manager.py to assign each team member with appropriate tasks.", "created": "10 Oct 2019", "completed": "21 Oct 2019", "deadline": "25 Oct 2019", "status": "yes"},
+#     {"assigned": "miguel", "title": "Find a new job", "description": "Use LinkedIn and other websites to look for a new job.", "created": "28 Nov 2022", "completed": "n/a", "deadline": "10 Mar 2023", "status": "no"}
 #     ]
 
+# tasks.insert_many(docs)
 
 main()
 
