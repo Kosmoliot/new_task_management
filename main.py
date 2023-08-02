@@ -1,5 +1,4 @@
-import pymongo
-import os
+import pymongo, os
 from datetime import datetime
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
@@ -20,13 +19,19 @@ class Menu:
     def show_menu(self):
         print("1. View tasks")
         print("2. Create task")
-        print("3. Update task")
+        print("3. Delete task")
         print("4. Exit")
     
+    def user_tasks(self, username):
+        return tasks.find({"assigned": username}, {"_id": 0, "title": 1})
+    
+        
     def view_tasks(self, username):
-        cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1})
-        for i in cursor:
-            print(i)
+        cursor = self.user_tasks(username)
+        for index, task in enumerate(cursor, start=1):
+            print(f"{index}. : {task}.")
+        print("\n")
+        
     
     def create_task(self, username):
         title = (input("Please enter a title of a task: "))
@@ -38,8 +43,29 @@ class Menu:
              "created": created, "completed": "n/a", "deadline": deadline, "status": "no"}
         )
 
-    def update_task(self):
-        print("Updating a task")
+    def delete_task(self, username):
+        results = list(self.user_tasks(username))
+        
+        if not results:
+            print("No documents found.")
+            return
+
+        print("Available documents:")
+        for i, task in enumerate(results, start=1):
+            print(f"{i}. {task}")
+
+        try:
+            selected_index = int(input("Enter the number of the document to delete: ")) - 1
+            if selected_index < 0 or selected_index >= len(results):
+                print("Invalid choice. Please select a valid number.")
+                return
+
+            selected_document = results[selected_index]
+            tasks.delete_one({"assigned": username, "title": selected_document["title"]})
+            print("Document deleted successfully.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+        
     
     def handle_menu_choice(self, choice, username):
         if choice == 1:
@@ -47,7 +73,7 @@ class Menu:
         elif choice == 2:
             self.create_task(username)
         elif choice == 3:
-            self.update_task()
+            self.delete_task(username)
         elif choice == 4:
             print("Exiting...")
             return False
@@ -62,7 +88,7 @@ class AdminMenu(Menu):
     def show_menu(self):
         print("1. View tasks")
         print("2. Create task")
-        print("3. Update task")
+        print("3. Delete task")
         print("4. View statistics")
         print("5. Generate report")
         print("6. Register a user")
@@ -84,7 +110,7 @@ class AdminMenu(Menu):
         elif choice == 2:
             self.create_task(username)
         elif choice == 3:
-            self.update_task()
+            self.delete_task(username)
         elif choice == 4:
             self.view_stats()
         elif choice == 5:
@@ -122,16 +148,17 @@ def login():
 
 def main():
     user = login()
-    if user.user_group == "master":
-        menu = AdminMenu()
-    else:
-        menu = Menu()
-    
-    while True:
-        menu.show_menu()
-        choice = int(input("Enter your choice: "))
-        if not menu.handle_menu_choice(choice, user.username):
-            break
+    if user != None:
+        if user.user_group == "master":
+            menu = AdminMenu()
+        else:
+            menu = Menu()
+        
+        while True:
+            menu.show_menu()
+            choice = int(input("Enter your choice: "))
+            if not menu.handle_menu_choice(choice, user.username):
+                break
 
 # Adding a user to a group of users in database
 # docs = [
@@ -141,6 +168,10 @@ def main():
 #     ]
 
 # tasks.insert_many(docs)
+
+# results = list(tasks.find({"assigned": "dima"}, {"_id": 0, "title": 1}))
+# for i, task in enumerate(results, start=1):
+#     print(f"{i}. {task}")
 
 main()
 
