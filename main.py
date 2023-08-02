@@ -101,8 +101,20 @@ class AdminMenu(Menu):
     def generate_reports(self):
         print("Generating report")
     
-    def reg_user(self):
-        print("Registering a user")
+    def reg_user(self):         # Function to register a new usermame      
+        new_user = input("Please enter a new username: ")
+        if users.find_one({"username": new_user}):   # Checking if username already exists
+            print(f"\nUsername '{new_user}' already exists, please try again.\n")        
+        else:
+            new_pass = input("Please enter you new password: ")
+            access = input("Please enter access level (admin/guest): ")
+            if access == "guest" or access == "admin" :
+                users.insert_one(
+                {"username": new_user, "password": new_pass, "access": access})
+                print("Congrats! You have created a new username!")
+            else:
+                print("Incorrect access level, please start again.")
+
         
     def handle_menu_choice(self, choice, username):
         if choice == 1:
@@ -149,7 +161,7 @@ def login():
 def main():
     user = login()
     if user != None:
-        if user.user_group == "master":
+        if user.user_group == "admin":
             menu = AdminMenu()
         else:
             menu = Menu()
