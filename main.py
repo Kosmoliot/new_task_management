@@ -101,21 +101,71 @@ class AdminMenu(Menu):
     def generate_reports(self):
         print("Generating report")
     
-    def reg_user(self):         # Function to register a new usermame      
-        new_user = input("Please enter a new username: ")
-        if users.find_one({"username": new_user}):   # Checking if username already exists
-            print(f"\nUsername '{new_user}' already exists, please try again.\n")        
-        else:
-            new_pass = input("Please enter you new password: ")
-            access = input("Please enter access level (admin/guest): ")
-            if access == "guest" or access == "admin" :
-                users.insert_one(
-                {"username": new_user, "password": new_pass, "access": access})
-                print("Congrats! You have created a new username!")
-            else:
-                print("Incorrect access level, please start again.")
-
+    def report_calcul(self, source):
+        total_tasks = len(source)
+        compl_tasks = 0
+        overdue_tasks = 0
+        overdue_perc = 0
         
+        for task in source:
+            deadline = datetime.today() > datetime.strptime(task["deadline"], "%d %b %Y")
+            if task["status"].lower() == "yes":    # Counting amount of completed tasks
+                compl_tasks += 1
+            elif (task["status"].lower() == "no") and deadline:
+                overdue_tasks += 1  # Counting amount of overdue tasks
+            
+        if total_tasks != 0:    # Avoiding division by zero
+            if total_tasks == compl_tasks:
+                overdue_perc = 0
+            else:
+                overdue_perc = overdue_tasks * 100 / (total_tasks - compl_tasks)
+                compl_perc = compl_tasks * 100 / total_tasks
+                incomp_perc = 100 - compl_perc
+        else:
+            incomp_perc = 0
+            compl_perc = 0
+            overdue_perc = 0
+            
+        return total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc 
+
+    def user_report_template(self, username): # Report print template for each user
+        results = self.report_calcul(list(tasks.find({"assigned": username})))   # Calling calculation function
+        total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
+        
+        print(f"""\n\t\t\t*** User's Statistics: {username} ***\n
+        Total number of tasks assigned:\t\t\t\t\t\t{total_tasks}      
+        The percentage of completed tasks:\t\t\t\t\t{round(compl_perc)}
+        The percentage of uncompleted tasks:\t\t\t\t\t{round(incomp_perc)}
+        The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}\n\n""")
+            
+                    
+    def task_report_output(self):   # Generate report and write it to 'task_overview.txt'
+        results = self.report_calcul(list(tasks.find()))
+        total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
+        
+        print(f"""\t\t\t*** Overall Task Statistics ***\n
+        Total number of tasks:\t\t\t\t\t\t\t{total_tasks}
+        The total number of completed tasks:\t\t\t\t\t{compl_tasks}
+        The total number of uncompleted tasks:\t\t\t\t\t{total_tasks - compl_tasks}
+        The total number of uncompleted and overdue tasks:\t\t\t{overdue_tasks}
+        The percentage of tasks that are incomplete:\t\t\t\t{round(incomp_perc)}
+        The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}""")
+        
+    def reg_user(self):         # Function to register a new usermame      
+            new_user = input("Please enter a new username: ")
+            if users.find_one({"username": new_user}):   # Checking if username already exists
+                print(f"\nUsername '{new_user}' already exists, please try again.\n")        
+            else:
+                new_pass = input("Please enter you new password: ")
+                access = input("Please enter access level (admin/guest): ")
+                if access == "guest" or access == "admin" :
+                    users.insert_one(
+                    {"username": new_user, "password": new_pass, "access": access})
+                    print("Congrats! You have created a new username!")
+                else:
+                    print("Incorrect access level, please start again.")
+
+            
     def handle_menu_choice(self, choice, username):
         if choice == 1:
             self.view_tasks(username)
@@ -126,7 +176,7 @@ class AdminMenu(Menu):
         elif choice == 4:
             self.view_stats()
         elif choice == 5:
-            self.generate_reports()
+            self.generate_reports(username)
         elif choice == 6:
             self.reg_user()
         elif choice == 7:
@@ -185,6 +235,8 @@ def main():
 # for i, task in enumerate(results, start=1):
 #     print(f"{i}. {task}")
 
-main()
+rand = AdminMenu()
+# print(rand.task_report_output())
+print(rand.task_report_output())
 
 client.close()
