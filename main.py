@@ -162,15 +162,15 @@ class AdminMenu(Menu):
             else:
                 print("Incorrect access level, please start again.")
                     
-    def del_user(self):
+    def delete_user(self):
         user_list = users.find({}, {"_id": 0, "username": 1})
         for i, name in enumerate(user_list, start=1):
             print(f"{i}. {name['username']}")
         
-        delete = input("Type the username to delete: ")
-        if users.find_one({"username": delete}):
-            users.delete_one({"username": delete})
-            print(f"Username {delete} has been successfully deleted!")
+        delete_username = input("Type the username to delete: ")
+        if users.find_one({"username": delete_username}):
+            users.delete_one({"username": delete_username})
+            print(f"Username {delete_username} has been successfully deleted!")
         else:
             print("No such username. Please try again.")
             
@@ -188,7 +188,7 @@ class AdminMenu(Menu):
         elif choice == 6:
             self.reg_user()        
         elif choice == 7:
-            self.del_user()
+            self.delete_user()
         elif choice == 8:
             print("Exiting...")
             return False
