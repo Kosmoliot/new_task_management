@@ -17,10 +17,11 @@ class Menu:
         pass
     
     def show_menu(self):
-        print("1. View tasks")
-        print("2. Create task")
-        print("3. Delete task")
-        print("4. Exit")
+        print("1. Create task")
+        print("2. Delete task")
+        print("3. View tasks")
+        print("4. View statistics")
+        print("5. Exit")
     
     def user_tasks(self, username):
         return tasks.find({"assigned": username}, {"_id": 0, "title": 1})
@@ -34,14 +35,17 @@ class Menu:
         
     
     def create_task(self, username):
-        title = (input("Please enter a title of a task: "))
-        description = (input("Please enter a description of the task: "))
-        deadline = (input("Please enter a due date (DD MMM YYYY): "))
-        created = datetime.today().strftime("%d %b %Y")
-        tasks.insert_one(
+        title = input("Please enter a title of a task: ")
+        description = input("Please enter a description of the task: ")
+        try:
+            date_input = datetime.strptime(input("Please enter a due date (DD MMM YYYY): "), "%d %b %Y")
+            deadline = date_input.strftime("%d %b %Y")
+            created = datetime.today().strftime("%d %b %Y")
+            tasks.insert_one(
             {"assigned": username, "title": title, "description": description,
-             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"}
-        )
+             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"})
+        except ValueError:
+            print("Incorrect date format. Please try again.")
 
     def delete_task(self, username):
         results = list(self.user_tasks(username))
@@ -66,41 +70,18 @@ class Menu:
         except ValueError:
             print("Invalid input. Please enter a number.")
         
-    
-    def handle_menu_choice(self, choice, username):
-        if choice == 1:
-            self.view_tasks(username)
-        elif choice == 2:
-            self.create_task(username)
-        elif choice == 3:
-            self.delete_task(username)
-        elif choice == 4:
-            print("Exiting...")
-            return False
-        else:
-            print("Invalid choice. Please try again.")
-        return True
-
-class AdminMenu(Menu):
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def show_menu(self):
-        print("1. View tasks")
-        print("2. Create task")
-        print("3. Delete task")
-        print("4. View statistics")
-        print("5. Generate report")
-        print("6. Register a user")
-        print("7. Exit")
         
-
-    def view_stats(self):
-        print("Displaying statistics")
+    def view_stats(self, username): # Report print template for each user
+        results = self.report_calcul(list(tasks.find({"assigned": username})))   # Calling calculation function
+        total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
         
-    def generate_reports(self):
-        print("Generating report")
-    
+        print(f"""\n\t\t\t*** User's Statistics: {username} ***\n
+        Total number of tasks assigned:\t\t\t\t\t\t{total_tasks}      
+        The percentage of completed tasks:\t\t\t\t\t{round(compl_perc)}
+        The percentage of uncompleted tasks:\t\t\t\t\t{round(incomp_perc)}
+        The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}\n\n""")
+            
+
     def report_calcul(self, source):
         total_tasks = len(source)
         compl_tasks = 0
@@ -127,19 +108,39 @@ class AdminMenu(Menu):
             overdue_perc = 0
             
         return total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc 
+               
 
-    def user_report_template(self, username): # Report print template for each user
-        results = self.report_calcul(list(tasks.find({"assigned": username})))   # Calling calculation function
-        total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
+    def handle_menu_choice(self, choice, username):
+        if choice == 1:
+            self.create_task(username)
+        elif choice == 2:
+            self.delete_task(username)
+        elif choice == 3:
+            self.view_tasks(username)
+        elif choice == 4:
+            self.view_stats(username)
+        elif choice == 5:
+            print("Exiting...")
+            return False
+        else:
+            print("Invalid choice. Please try again.")
+        return True
+
+class AdminMenu(Menu):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def show_menu(self):
+        print("1. View tasks")
+        print("2. Create task")
+        print("3. Delete task")
+        print("4. View statistics")
+        print("5. Generate report")
+        print("6. Register a user")
+        print("7. Exit")
         
-        print(f"""\n\t\t\t*** User's Statistics: {username} ***\n
-        Total number of tasks assigned:\t\t\t\t\t\t{total_tasks}      
-        The percentage of completed tasks:\t\t\t\t\t{round(compl_perc)}
-        The percentage of uncompleted tasks:\t\t\t\t\t{round(incomp_perc)}
-        The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}\n\n""")
-            
-                    
-    def task_report_output(self):   # Generate report and write it to 'task_overview.txt'
+
+    def generate_report(self):   # Generate report and write it to 'task_overview.txt'
         results = self.report_calcul(list(tasks.find()))
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
         
@@ -151,6 +152,7 @@ class AdminMenu(Menu):
         The percentage of tasks that are incomplete:\t\t\t\t{round(incomp_perc)}
         The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}""")
         
+       
     def reg_user(self):         # Function to register a new usermame      
             new_user = input("Please enter a new username: ")
             if users.find_one({"username": new_user}):   # Checking if username already exists
@@ -174,9 +176,9 @@ class AdminMenu(Menu):
         elif choice == 3:
             self.delete_task(username)
         elif choice == 4:
-            self.view_stats()
+            self.view_stats(username)
         elif choice == 5:
-            self.generate_reports(username)
+            self.generate_report()
         elif choice == 6:
             self.reg_user()
         elif choice == 7:
@@ -218,7 +220,11 @@ def main():
         
         while True:
             menu.show_menu()
-            choice = int(input("Enter your choice: "))
+            try:
+                choice = int(input("Enter your choice: "))
+            except ValueError:
+                print("Input should be a number, try again.")
+                continue
             if not menu.handle_menu_choice(choice, user.username):
                 break
 
@@ -235,8 +241,6 @@ def main():
 # for i, task in enumerate(results, start=1):
 #     print(f"{i}. {task}")
 
-rand = AdminMenu()
-# print(rand.task_report_output())
-print(rand.task_report_output())
+main()
 
 client.close()
