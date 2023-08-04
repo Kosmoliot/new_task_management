@@ -25,15 +25,13 @@ class Menu:
     
     def user_tasks(self, username):
         return tasks.find({"assigned": username}, {"_id": 0, "title": 1})
-    
-        
+      
     def view_tasks(self, username):
         cursor = self.user_tasks(username)
         for index, task in enumerate(cursor, start=1):
             print(f"{index}. : {task}.")
         print("\n")
         
-    
     def create_task(self, username):
         title = input("Please enter a title of a task: ")
         description = input("Please enter a description of the task: ")
@@ -43,7 +41,8 @@ class Menu:
             created = datetime.today().strftime("%d %b %Y")
             tasks.insert_one(
             {"assigned": username, "title": title, "description": description,
-             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"})
+             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"}
+            )
         except ValueError:
             print("Incorrect date format. Please try again.")
 
@@ -70,7 +69,6 @@ class Menu:
         except ValueError:
             print("Invalid input. Please enter a number.")
         
-        
     def view_stats(self, username): # Report print template for each user
         results = self.report_calcul(list(tasks.find({"assigned": username})))   # Calling calculation function
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
@@ -81,7 +79,6 @@ class Menu:
         The percentage of uncompleted tasks:\t\t\t\t\t{round(incomp_perc)}
         The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}\n\n""")
             
-
     def report_calcul(self, source):
         total_tasks = len(source)
         compl_tasks = 0
@@ -109,7 +106,6 @@ class Menu:
             
         return total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc 
                
-
     def handle_menu_choice(self, choice, username):
         if choice == 1:
             self.create_task(username)
@@ -137,9 +133,9 @@ class AdminMenu(Menu):
         print("4. View statistics")
         print("5. Generate report")
         print("6. Register a user")
-        print("7. Exit")
+        print("7. Delete a user")
+        print("8. Exit")
         
-
     def generate_report(self):   # Generate report and write it to 'task_overview.txt'
         results = self.report_calcul(list(tasks.find()))
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
@@ -152,21 +148,31 @@ class AdminMenu(Menu):
         The percentage of tasks that are incomplete:\t\t\t\t{round(incomp_perc)}
         The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}""")
         
-       
     def reg_user(self):         # Function to register a new usermame      
-            new_user = input("Please enter a new username: ")
-            if users.find_one({"username": new_user}):   # Checking if username already exists
-                print(f"\nUsername '{new_user}' already exists, please try again.\n")        
+        new_user = input("Please enter a new username: ")
+        if users.find_one({"username": new_user}):   # Checking if username already exists
+            print(f"\nUsername '{new_user}' already exists, please try again.\n")        
+        else:
+            new_pass = input("Please enter you new password: ")
+            access = input("Please enter access level (admin/guest): ")
+            if access == "guest" or access == "admin" :
+                users.insert_one(
+                {"username": new_user, "password": new_pass, "access": access})
+                print(f"Username {new_user} has been successfully created!")
             else:
-                new_pass = input("Please enter you new password: ")
-                access = input("Please enter access level (admin/guest): ")
-                if access == "guest" or access == "admin" :
-                    users.insert_one(
-                    {"username": new_user, "password": new_pass, "access": access})
-                    print("Congrats! You have created a new username!")
-                else:
-                    print("Incorrect access level, please start again.")
-
+                print("Incorrect access level, please start again.")
+                    
+    def del_user(self):
+        user_list = users.find({}, {"_id": 0, "username": 1})
+        for i, name in enumerate(user_list, start=1):
+            print(f"{i}. {name['username']}")
+        
+        delete = input("Type the username to delete: ")
+        if users.find_one({"username": delete}):
+            users.delete_one({"username": delete})
+            print(f"Username {delete} has been successfully deleted!")
+        else:
+            print("No such username. Please try again.")
             
     def handle_menu_choice(self, choice, username):
         if choice == 1:
@@ -180,8 +186,10 @@ class AdminMenu(Menu):
         elif choice == 5:
             self.generate_report()
         elif choice == 6:
-            self.reg_user()
+            self.reg_user()        
         elif choice == 7:
+            self.del_user()
+        elif choice == 8:
             print("Exiting...")
             return False
         else:
@@ -193,7 +201,6 @@ class User():
         self.username = username
         self.password = password
         self.user_group = user_group
-    
     
 def login():
     username = input("Please enter your login: \n")
@@ -208,7 +215,6 @@ def login():
             print("Incorrect password, try again!")
     else:
         print("Incorrect login, try again!")
-
 
 def main():
     user = login()
