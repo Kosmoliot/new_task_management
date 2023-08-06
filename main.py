@@ -2,6 +2,7 @@ import pymongo, os
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Loading MongoDB connection string from .env file
 load_dotenv()
 MONGODB_URL = os.environ["MONGODB_URL"]
 
@@ -11,6 +12,7 @@ db = client.task_management
 tasks = db.tasks
 users = db.users
 
+# Creating User class that will be used for a guest users with limited functionality
 class User():
     def __init__(self, username, password, user_group) -> None:
         self.username = username
@@ -24,19 +26,24 @@ class User():
         print("4. View statistics")
         print("5. Exit")
     
+    # Function returning an object containing specific user tasks to be called 
+    # in other class functions
     def user_tasks(self, username):
         return tasks.find({"assigned": username}, {"_id": 0, "title": 1})
       
+    # Simple display function for the list of tasks
     def view_tasks(self, username):
         cursor = self.user_tasks(username)
         for index, task in enumerate(cursor, start=1):
             print(f"{index}. : {task}.")
         print("\n")
-        
+    
+    # Function to create a task for the logged-in user
     def create_task(self, username):
         title = input("Please enter a title of a task: ")
         description = input("Please enter a description of the task: ")
-        try:
+        try:    # Using try/except to catch incorrect value input
+            # Formatting deadline date input
             date_input = datetime.strptime(input("Please enter a due date (DD MMM YYYY): "), "%d %b %Y")
             deadline = date_input.strftime("%d %b %Y")
             created = datetime.today().strftime("%d %b %Y")
@@ -47,13 +54,14 @@ class User():
         except ValueError:
             print("Incorrect date format. Please try again.")
 
+    # Function to delete a task
     def delete_task(self, username):
         results = list(self.user_tasks(username))
-        
         if not results:
             print("No documents found.")
             return
-
+    # Displaying a list of tasks and using enumerate to create indexing so we could
+    # delete a specific task chosen by the user from the list
         print("Available documents:")
         for i, task in enumerate(results, start=1):
             print(f"{i}. {task}")
@@ -70,8 +78,9 @@ class User():
         except ValueError:
             print("Invalid input. Please enter a number.")
         
-    def view_stats(self, username): # Report print template for each user
-        results = self.report_calcul(list(tasks.find({"assigned": username})))   # Calling calculation function
+    def view_stats(self, username):
+        # Calling calculation function
+        results = self.report_calcul(list(tasks.find({"assigned": username})))
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
         
         print(f"""\n\t\t\t*** User's Statistics: {username} ***\n
@@ -120,6 +129,7 @@ class User():
             print("Invalid choice. Please try again.")
         return True
 
+# User child class with additional functionality
 class Admin(User):
     def __init__(self, username, password, user_group) -> None:
         super().__init__(username, password, user_group)
@@ -134,7 +144,7 @@ class Admin(User):
         print("7. Delete a user")
         print("8. Exit")
         
-    def generate_report(self):   # Generate report and write it to 'task_overview.txt'
+    def generate_report(self):   # Generate report by calling calculations function
         results = self.report_calcul(list(tasks.find()))
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
         
@@ -146,7 +156,7 @@ class Admin(User):
         The percentage of tasks that are incomplete:\t\t\t\t{round(incomp_perc)}
         The percentage of tasks that overdue:\t\t\t\t\t{round(overdue_perc)}""")
         
-    def reg_user(self):         # Function to register a new usermame      
+    def reg_user(self):     # Function to register a new usermame      
         new_user = input("Please enter a new username: ")
         if users.find_one({"username": new_user}):   # Checking if username already exists
             print(f"\nUsername '{new_user}' already exists, please try again.\n")        
