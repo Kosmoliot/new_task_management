@@ -82,12 +82,8 @@ class User():
             
     def report_calcul(self, source):
         total_tasks = len(source)
-        compl_tasks = 0
-        overdue_tasks = 0
-        overdue_perc = 0
-        compl_perc = 0
-        incomp_perc = 0
-        
+        compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = 0, 0, 0, 0, 0
+
         for task in source:
             deadline = datetime.today() > datetime.strptime(task["deadline"], "%d %b %Y")
             if task["status"].lower() == "yes":    # Counting amount of completed tasks
@@ -98,15 +94,14 @@ class User():
         if total_tasks != 0:    # Avoiding division by zero
             if total_tasks == compl_tasks:
                 overdue_perc = 0
+                compl_perc = 100
             else:
                 overdue_perc = overdue_tasks * 100 / (total_tasks - compl_tasks)
                 compl_perc = compl_tasks * 100 / total_tasks
                 incomp_perc = 100 - compl_perc
         else:
-            incomp_perc = 0
-            compl_perc = 0
-            overdue_perc = 0
-            
+            incomp_perc, compl_perc, overdue_perc = 0, 0, 0
+                
         return total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc 
                
     def handle_menu_choice(self, choice, username):
@@ -127,10 +122,7 @@ class User():
 
 class Admin(User):
     def __init__(self, username, password, user_group) -> None:
-        super().__init__()
-        self.username = username
-        self.password = password
-        self.user_group = user_group
+        super().__init__(username, password, user_group)
     
     def show_menu(self):
         print("1. View tasks")
@@ -234,13 +226,6 @@ def main():
                 continue
             if not user.handle_menu_choice(choice, user.username):
                 break
-
-# Adding a user to a group of users in database
-# docs = [
-#     { "assigned": "miguel", "title": "Register Users with task_manager.py", "description": "Use task_manager.py to add the usernames and passwords for all team members.", "created": "10 Oct 2019", "completed": "17 Oct 201", "deadline": "20 Oct 2019", "status": "yes"},
-#     {"assigned": "admin", "title": "Assign initial tasks", "description": "Use task_manager.py to assign each team member with appropriate tasks.", "created": "10 Oct 2019", "completed": "21 Oct 2019", "deadline": "25 Oct 2019", "status": "yes"},
-#     {"assigned": "miguel", "title": "Find a new job", "description": "Use LinkedIn and other websites to look for a new job.", "created": "28 Nov 2022", "completed": "n/a", "deadline": "10 Mar 2023", "status": "no"}
-#     ]
 
 main()
 
