@@ -84,6 +84,8 @@ class Menu:
         compl_tasks = 0
         overdue_tasks = 0
         overdue_perc = 0
+        compl_perc = 0
+        incomp_perc = 0
         
         for task in source:
             deadline = datetime.today() > datetime.strptime(task["deadline"], "%d %b %Y")
