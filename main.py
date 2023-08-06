@@ -1,7 +1,6 @@
 import pymongo, os
 from datetime import datetime
 from dotenv import load_dotenv
-from bson.objectid import ObjectId
 
 load_dotenv()
 MONGODB_URL = os.environ["MONGODB_URL"]
@@ -12,9 +11,11 @@ db = client.task_management
 tasks = db.tasks
 users = db.users
 
-class Menu:
-    def __init__(self) -> None:
-        pass
+class User():
+    def __init__(self, username, password, user_group) -> None:
+        self.username = username
+        self.password = password
+        self.user_group = user_group
     
     def show_menu(self):
         print("1. Create task")
@@ -124,9 +125,12 @@ class Menu:
             print("Invalid choice. Please try again.")
         return True
 
-class AdminMenu(Menu):
-    def __init__(self) -> None:
+class Admin(User):
+    def __init__(self, username, password, user_group) -> None:
         super().__init__()
+        self.username = username
+        self.password = password
+        self.user_group = user_group
     
     def show_menu(self):
         print("1. View tasks")
@@ -198,11 +202,6 @@ class AdminMenu(Menu):
             print("Invalid choice. Please try again.")
         return True
 
-class User():
-    def __init__(self, username, password, user_group) -> None:
-        self.username = username
-        self.password = password
-        self.user_group = user_group
     
 def login():
     username = input("Please enter your login: \n")
@@ -212,28 +211,28 @@ def login():
         if match:
             print("Success!")
             user_group = match["access"]
-            return User(username, password, user_group)           
+            return [username, password, user_group]      
         else:
             print("Incorrect password, try again!")
     else:
         print("Incorrect login, try again!")
 
 def main():
-    user = login()
-    if user != None:
-        if user.user_group == "admin":
-            menu = AdminMenu()
+    user_details = login()
+    if user_details != None:
+        if user_details[2] == "admin":
+            user = Admin(*user_details)
         else:
-            menu = Menu()
+            user = User(*user_details)
         
         while True:
-            menu.show_menu()
+            user.show_menu()
             try:
                 choice = int(input("Enter your choice: "))
             except ValueError:
                 print("Input should be a number, try again.")
                 continue
-            if not menu.handle_menu_choice(choice, user.username):
+            if not user.handle_menu_choice(choice, user.username):
                 break
 
 # Adding a user to a group of users in database
@@ -242,12 +241,6 @@ def main():
 #     {"assigned": "admin", "title": "Assign initial tasks", "description": "Use task_manager.py to assign each team member with appropriate tasks.", "created": "10 Oct 2019", "completed": "21 Oct 2019", "deadline": "25 Oct 2019", "status": "yes"},
 #     {"assigned": "miguel", "title": "Find a new job", "description": "Use LinkedIn and other websites to look for a new job.", "created": "28 Nov 2022", "completed": "n/a", "deadline": "10 Mar 2023", "status": "no"}
 #     ]
-
-# tasks.insert_many(docs)
-
-# results = list(tasks.find({"assigned": "dima"}, {"_id": 0, "title": 1}))
-# for i, task in enumerate(results, start=1):
-#     print(f"{i}. {task}")
 
 main()
 
