@@ -39,44 +39,44 @@ class User():
             print(f"{i}. {task}")
         print("\n")
         
-    def task_select():  # Function to select a task for editing
-        task_nr = int(input("Please choose task's nr to edit or type '-1' to exit: "))
-        if task_nr in tasks.keys():
-            task_options(task_nr)
-        else:
-            print("Incorrect task number, please try again.")
+    # def task_select():  # Function to select a task for editing
+    #     task_nr = int(input("Please choose task's nr to edit or type '-1' to exit: "))
+    #     if task_nr in tasks.keys():
+    #         task_options(task_nr)
+    #     else:
+    #         print("Incorrect task number, please try again.")
 
-    def task_options(task_nr):  # Function to choose task editing option
-        task_opt = input("""\nPlease select one of the following options below
-    e\t-\tEdit task
-    c\t-\tMark as 'complete'
-    r\t-\tReturn to task selection
-    :""")
-        if task_opt == 'e':
-            task_edit(task_nr)
-        elif task_opt == 'c':
-            tasks[task_nr][5] = 'Yes'
-            print(f"\nTask nr {task_nr} has been marked as complete.")
-        elif task_opt == 'r':
-            view_mine()     # Calls view_mine function to choose task or exit
+    # def task_options(task_nr):  # Function to choose task editing option
+    #     task_opt = input("""\nPlease select one of the following options below
+    # e\t-\tEdit task
+    # c\t-\tMark as 'complete'
+    # r\t-\tReturn to task selection
+    # :""")
+    #     if task_opt == 'e':
+    #         task_edit(task_nr)
+    #     elif task_opt == 'c':
+    #         tasks[task_nr][5] = 'Yes'
+    #         print(f"\nTask nr {task_nr} has been marked as complete.")
+    #     elif task_opt == 'r':
+    #         view_mine()     # Calls view_mine function to choose task or exit
             
-    def task_edit(task_nr): # Function to edit selected task
-        if tasks[task_nr][5] == 'No':   # Only uncomplted task can be edited
-            edit_opt = input("""Please select one of the following options below
-    u\t-\tChange username whom task is assigned to
-    d\t-\tChange task's due date
-    r\t-\tReturn to task selection
-    :""")
-        if edit_opt == 'u':
-            new_task_user = get_user_input()    # Calls function to request username
-            tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
-        elif edit_opt == 'd':
-            new_due_date = input("What is the new due date: ")
-            tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
-        elif edit_opt == 'r':
-            task_options(task_nr)
-        else:
-            print("\nTask has been completed and therefore cannot be edited.")
+    # def task_edit(task_nr): # Function to edit selected task
+    #     if tasks[task_nr][5] == 'No':   # Only uncomplted task can be edited
+    #         edit_opt = input("""Please select one of the following options below
+    # u\t-\tChange username whom task is assigned to
+    # d\t-\tChange task's due date
+    # r\t-\tReturn to task selection
+    # :""")
+    #     if edit_opt == 'u':
+    #         new_task_user = get_user_input()    # Calls function to request username
+    #         tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
+    #     elif edit_opt == 'd':
+    #         new_due_date = input("What is the new due date: ")
+    #         tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
+    #     elif edit_opt == 'r':
+    #         task_options(task_nr)
+    #     else:
+    #         print("\nTask has been completed and therefore cannot be edited.")
             
     # Function to create a task for the logged-in user
     def create_task(self, username):
@@ -108,7 +108,7 @@ class User():
             if selected_index < 0 or selected_index >= len(results):
                 print("Invalid choice. Please select a valid number.")
                 return
-
+            
             selected_document = results[selected_index]
             tasks.delete_one({"assigned": username, "title": selected_document["title"]})
             print("Document deleted successfully.")
