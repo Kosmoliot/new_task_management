@@ -14,10 +14,11 @@ users = db.users
 
 # Creating User class that will be used for a guest users with limited functionality
 class User():
-    def __init__(self, username, password, user_group) -> None:
+    def __init__(self, username, password, user_group, all_tasks) -> None:
         self.username = username
         self.password = password
         self.user_group = user_group
+        self.all_tasks = all_tasks
     
     def show_menu(self):
         print("1. View your tasks")
@@ -29,44 +30,44 @@ class User():
     
     # Function returning an object containing specific user tasks to be called 
     # in other class functions
-    def user_tasks(self, username):
-        cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1, "description": 1})
-        return list(cursor)
+    # def user_tasks(self):
+    #     # cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1, "description": 1})
+    #     return self.all_tasks
       
-    def view_tasks(self, username):
-        results = self.user_tasks(username)
+    def view_tasks(self):
+        results = self.all_tasks
         for i, task in enumerate(results, start=1):
             print(f"{i}. {task}")
         print("\n")
     
-    def update_task(self, username):  # Function to select a task for editing
-        self.view_tasks(username)
-        task_nr = int(input("Please choose task's nr to edit or type '-1' to exit: "))
-        sel_tasks = self.user_tasks(username)
-        if task_nr in range(1, len(sel_tasks) + 1):
-            self.task_edit(username, sel_tasks[task_nr - 1])
+    def update_task(self):  # Function to select a task for editing
+        self.view_tasks()
+        task_nr = int(input("Please choose task's nr to edit: "))
+        if task_nr in range(1, len(self.all_tasks) + 1):
+            self.task_edit(task_nr - 1)
         else:
             print("Incorrect task number, please try again.")
             
-    def task_edit(self, username, sel_task): # Function to edit selected task
-        if list(tasks.find({"assigned": username, "title": sel_task["title"]}))[0]['status'] != 'no':   # Only uncompleted task can be edited
-            edit_opt = input("""Please select one of the following options below
-    u\t-\tChange username whom task is assigned to
-    d\t-\tChange task's due date
-    r\t-\tReturn to task selection
-    :""")
-            if edit_opt == 'u':
-                new_task_user = input("Type new user")    # Calls function to request username
-                tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
-            elif edit_opt == 'd':
-                new_due_date = input("What is the new due date: ")
-                tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
-            elif edit_opt == 'r':
-                task_options(task_nr)
-            elif edit_opt == 'c':                   # Changes status to "Complete"
-                pass
-        else:
-            print("\nTask has been completed and therefore cannot be edited.")
+    def task_edit(self, task_nr): # Function to edit selected task
+        pass
+    #     if list(tasks.find({"assigned": username, "title": sel_task["title"]}))[0]['status'] != 'no':   # Only uncompleted task can be edited
+    #         edit_opt = input("""Please select one of the following options below
+    # u\t-\tChange username whom task is assigned to
+    # d\t-\tChange task's due date
+    # r\t-\tReturn to task selection
+    # :""")
+    #         if edit_opt == 'u':
+    #             new_task_user = input("Type new user")    # Calls function to request username
+    #             tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
+    #         elif edit_opt == 'd':
+    #             new_due_date = input("What is the new due date: ")
+    #             tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
+    #         elif edit_opt == 'r':
+    #             task_options(task_nr)
+    #         elif edit_opt == 'c':                   # Changes status to "Complete"
+    #             pass
+    #     else:
+    #         print("\nTask has been completed and therefore cannot be edited.")
             
     # Function to create a task for the logged-in user
     def create_task(self, username):
@@ -160,8 +161,8 @@ class User():
 
 # User child class with additional functionality
 class Admin(User):
-    def __init__(self, username, password, user_group) -> None:
-        super().__init__(username, password, user_group)
+    def __init__(self, username, password, user_group, all_tasks) -> None:
+        super().__init__(username, password, user_group, all_tasks)
     
     def show_menu(self):
         print("1. View your tasks")
@@ -222,13 +223,13 @@ class Admin(User):
             
     def handle_menu_choice(self, choice, username):
         if choice == 1:
-            self.view_tasks(username)
+            self.view_tasks()
         elif choice == 2:
             self.view_all_tasks()
         elif choice == 3:
             self.create_task(username)
         elif choice == 4:
-            self.update_task(username)
+            self.update_task()
         elif choice == 5:
             self.delete_task(username)
         elif choice == 6:
@@ -255,7 +256,8 @@ def login():
         if match:
             print("Success!")
             user_group = match["access"]
-            return [username, password, user_group]      
+            all_tasks = list(tasks.find({"assigned": username}, {"_id": 0, "title": 1, "description": 1}))
+            return [username, password, user_group, all_tasks]      
         else:
             print("Incorrect password, try again!")
     else:
