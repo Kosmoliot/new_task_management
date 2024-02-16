@@ -20,8 +20,8 @@ class User():
         self.user_group = user_group
     
     def show_menu(self):
-        print("1. View tasks")
-        print("2. Create task")
+        print("1. View your tasks")
+        print("2. Create new task")
         print("3. Update task")
         print("4. Delete task")
         print("5. View statistics")
@@ -30,7 +30,7 @@ class User():
     # Function returning an object containing specific user tasks to be called 
     # in other class functions
     def user_tasks(self, username):
-        cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1})
+        cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1, "description": 1})
         return list(cursor)
       
     def view_tasks(self, username):
@@ -38,45 +38,35 @@ class User():
         for i, task in enumerate(results, start=1):
             print(f"{i}. {task}")
         print("\n")
-        
-    # def task_select():  # Function to select a task for editing
-    #     task_nr = int(input("Please choose task's nr to edit or type '-1' to exit: "))
-    #     if task_nr in tasks.keys():
-    #         task_options(task_nr)
-    #     else:
-    #         print("Incorrect task number, please try again.")
-
-    # def task_options(task_nr):  # Function to choose task editing option
-    #     task_opt = input("""\nPlease select one of the following options below
-    # e\t-\tEdit task
-    # c\t-\tMark as 'complete'
-    # r\t-\tReturn to task selection
-    # :""")
-    #     if task_opt == 'e':
-    #         task_edit(task_nr)
-    #     elif task_opt == 'c':
-    #         tasks[task_nr][5] = 'Yes'
-    #         print(f"\nTask nr {task_nr} has been marked as complete.")
-    #     elif task_opt == 'r':
-    #         view_mine()     # Calls view_mine function to choose task or exit
+    
+    def update_task(self, username):  # Function to select a task for editing
+        self.view_tasks(username)
+        task_nr = int(input("Please choose task's nr to edit or type '-1' to exit: "))
+        sel_tasks = self.user_tasks(username)
+        if task_nr in range(1, len(sel_tasks) + 1):
+            self.task_edit(username, sel_tasks[task_nr - 1])
+        else:
+            print("Incorrect task number, please try again.")
             
-    # def task_edit(task_nr): # Function to edit selected task
-    #     if tasks[task_nr][5] == 'No':   # Only uncomplted task can be edited
-    #         edit_opt = input("""Please select one of the following options below
-    # u\t-\tChange username whom task is assigned to
-    # d\t-\tChange task's due date
-    # r\t-\tReturn to task selection
-    # :""")
-    #     if edit_opt == 'u':
-    #         new_task_user = get_user_input()    # Calls function to request username
-    #         tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
-    #     elif edit_opt == 'd':
-    #         new_due_date = input("What is the new due date: ")
-    #         tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
-    #     elif edit_opt == 'r':
-    #         task_options(task_nr)
-    #     else:
-    #         print("\nTask has been completed and therefore cannot be edited.")
+    def task_edit(self, username, sel_task): # Function to edit selected task
+        if list(tasks.find({"assigned": username, "title": sel_task["title"]}))[0]['status'] != 'no':   # Only uncompleted task can be edited
+            edit_opt = input("""Please select one of the following options below
+    u\t-\tChange username whom task is assigned to
+    d\t-\tChange task's due date
+    r\t-\tReturn to task selection
+    :""")
+            if edit_opt == 'u':
+                new_task_user = input("Type new user")    # Calls function to request username
+                tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
+            elif edit_opt == 'd':
+                new_due_date = input("What is the new due date: ")
+                tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
+            elif edit_opt == 'r':
+                task_options(task_nr)
+            elif edit_opt == 'c':                   # Changes status to "Complete"
+                pass
+        else:
+            print("\nTask has been completed and therefore cannot be edited.")
             
     # Function to create a task for the logged-in user
     def create_task(self, username):
@@ -174,16 +164,24 @@ class Admin(User):
         super().__init__(username, password, user_group)
     
     def show_menu(self):
-        print("1. View tasks")
-        print("2. Create task")
-        print("3. Update task")
-        print("4. Delete task")
-        print("5. View statistics")
-        print("6. Generate report")
-        print("7. Register a user")
-        print("8. Delete a user")
-        print("9. Exit")
-        
+        print("1. View your tasks")
+        print("2. View all tasks")
+        print("3. Create new task")
+        print("4. Update task")
+        print("5. Delete task")
+        print("6. View statistics")
+        print("7. Generate report")
+        print("8. Register a user")
+        print("9. Delete a user")
+        print("10. Exit")
+    
+    
+    def view_all_tasks(self): # View all tasks
+        cursor = list(tasks.find({}, {"_id":0}))
+        for i, task in enumerate(cursor, start=1):
+            print(f"{i}. {task}")
+        print("\n")
+            
     def generate_report(self):   # Generate report by calling calculations function
         results = self.report_calcul(list(tasks.find()))
         total_tasks, compl_tasks, overdue_tasks, compl_perc, incomp_perc, overdue_perc = results
@@ -226,20 +224,22 @@ class Admin(User):
         if choice == 1:
             self.view_tasks(username)
         elif choice == 2:
-            self.create_task(username)
+            self.view_all_tasks()
         elif choice == 3:
-            self.update_task(username)
+            self.create_task(username)
         elif choice == 4:
-            self.delete_task(username)
+            self.update_task(username)
         elif choice == 5:
-            self.view_stats(username)
+            self.delete_task(username)
         elif choice == 6:
-            self.generate_report()
+            self.view_stats(username)
         elif choice == 7:
-            self.reg_user()        
+            self.generate_report()
         elif choice == 8:
-            self.delete_user()
+            self.reg_user()        
         elif choice == 9:
+            self.delete_user()
+        elif choice == 10:
             print("Exiting...")
             return False
         else:
@@ -272,7 +272,7 @@ def main():
         while True:
             user.show_menu()
             try:
-                choice = int(input("Enter your choice: "))
+                choice = int(input("Enter your choice: \n"))
             except ValueError:
                 print("Input should be a number, try again.")
                 continue
