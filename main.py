@@ -49,25 +49,27 @@ class User():
             print("Incorrect task number, please try again.")
             
     def task_edit(self, task_nr): # Function to edit selected task
-        pass
-    #     if list(tasks.find({"assigned": username, "title": sel_task["title"]}))[0]['status'] != 'no':   # Only uncompleted task can be edited
-    #         edit_opt = input("""Please select one of the following options below
-    # u\t-\tChange username whom task is assigned to
-    # d\t-\tChange task's due date
-    # r\t-\tReturn to task selection
-    # :""")
-    #         if edit_opt == 'u':
-    #             new_task_user = input("Type new user")    # Calls function to request username
-    #             tasks[task_nr][0] = new_task_user   # Edits coresponding item in tasks dict
-    #         elif edit_opt == 'd':
-    #             new_due_date = input("What is the new due date: ")
-    #             tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
-    #         elif edit_opt == 'r':
-    #             task_options(task_nr)
-    #         elif edit_opt == 'c':                   # Changes status to "Complete"
-    #             pass
-    #     else:
-    #         print("\nTask has been completed and therefore cannot be edited.")
+        if self.all_tasks[task_nr] != 'no':   # Only uncompleted task can be edited
+            edit_opt = input("""Please select one of the following options below
+    u\t-\tChange username whom task is assigned to
+    d\t-\tChange task's due date
+    r\t-\tReturn to task selection
+    :""")
+            if edit_opt == 'u':
+                new_task_user = input("Type new user: ")    # Calls function to request username
+                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
+                update_operation = {"$set": {"assigned": new_task_user}}
+                tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
+                self.all_tasks = list(tasks.find({"assigned": self.username}, {"_id": 0, "title": 1, "description": 1}))
+        #     elif edit_opt == 'd':
+        #         new_due_date = input("What is the new due date: ")
+        #         tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
+            elif edit_opt == 'r':
+                pass
+            elif edit_opt == 'c':                   # Changes status to "Complete"
+                pass
+        else:
+            print("\nTask has been completed and therefore cannot be edited.")
             
     # Function to create a task for the logged-in user
     def create_task(self, username):
@@ -143,13 +145,13 @@ class User():
                
     def handle_menu_choice(self, choice, username):
         if choice == 1:
-            self.view_tasks(username)
+            self.view_tasks()
         elif choice == 2:
             self.create_task(username)
         elif choice == 3:
-            self.update_task(username)
+            self.update_task()
         elif choice == 4:
-            self.delete_task(username)
+            self.delete_task()
         elif choice == 5:
             self.view_stats(username)
         elif choice == 6:
@@ -231,7 +233,7 @@ class Admin(User):
         elif choice == 4:
             self.update_task()
         elif choice == 5:
-            self.delete_task(username)
+            self.delete_task()
         elif choice == 6:
             self.view_stats(username)
         elif choice == 7:
