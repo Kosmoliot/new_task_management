@@ -54,6 +54,7 @@ class User():
     u\t-\tChange username whom task is assigned to
     d\t-\tChange task's due date
     r\t-\tReturn to task selection
+    c\t-\tChange status to "Complete"
     :""")
             if edit_opt == 'u':
                 new_task_user = input("Type new user: ")    # Calls function to request username
@@ -66,10 +67,11 @@ class User():
                 filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
                 update_operation = {"$set": {"deadline": deadline}}
                 tasks.update_one(filter_query, update_operation)    # Changes due date in tasks dict
-
+            elif edit_opt == 'c':                 # Changes status to "Complete"
+                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
+                update_operation = {"$set": {"status": "yes"}}
+                tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
             elif edit_opt == 'r':
-                pass
-            elif edit_opt == 'c':                   # Changes status to "Complete"
                 pass
         else:
             print("\nTask has been completed and therefore cannot be edited.")
