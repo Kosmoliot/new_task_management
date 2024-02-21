@@ -60,17 +60,21 @@ class User():
                 filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
                 update_operation = {"$set": {"assigned": new_task_user}}
                 tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
-                self.all_tasks = list(tasks.find({"assigned": self.username}, {"_id": 0, "title": 1, "description": 1}))
-        #     elif edit_opt == 'd':
-        #         new_due_date = input("What is the new due date: ")
-        #         tasks[task_nr][4] = new_due_date    # Changes due date in tasks dict
+            elif edit_opt == 'd':
+                new_due_date = datetime.strptime(input("Please enter a new due date (DD MMM YYYY): "), "%d %b %Y")
+                deadline = new_due_date.strftime("%d %b %Y")
+                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
+                update_operation = {"$set": {"deadline": deadline}}
+                tasks.update_one(filter_query, update_operation)    # Changes due date in tasks dict
+
             elif edit_opt == 'r':
                 pass
             elif edit_opt == 'c':                   # Changes status to "Complete"
                 pass
         else:
             print("\nTask has been completed and therefore cannot be edited.")
-            
+        self.all_tasks = list(tasks.find({"assigned": self.username}, {"_id": 0, "title": 1, "description": 1}))
+           
     # Function to create a task for the logged-in user
     def create_task(self, username):
         title = input("Please enter a title of a task: ")
