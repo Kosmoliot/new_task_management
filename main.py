@@ -27,12 +27,6 @@ class User():
         print("4. Delete task")
         print("5. View statistics")
         print("6. Exit")
-    
-    # Function returning an object containing specific user tasks to be called 
-    # in other class functions
-    # def user_tasks(self):
-    #     # cursor = tasks.find({"assigned": username}, {"_id": 0, "title": 1, "description": 1})
-    #     return self.all_tasks
       
     def view_tasks(self):
         results = self.all_tasks
@@ -49,32 +43,34 @@ class User():
             print("Incorrect task number, please try again.")
             
     def task_edit(self, task_nr): # Function to edit selected task
-        if self.all_tasks[task_nr] != 'no':   # Only uncompleted task can be edited
-            edit_opt = input("""Please select one of the following options below
+        filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
+        # if tasks.find_one(filter_query):   # Only uncompleted task can be edited
+        edit_opt = input("""Please select one of the following options below
     u\t-\tChange username whom task is assigned to
-    d\t-\tChange task's due date
+    d\t-\tChange task due date
+    c\t-\tChange task status
     r\t-\tReturn to task selection
-    c\t-\tChange status to "Complete"
     :""")
-            if edit_opt == 'u':
-                new_task_user = input("Type new user: ")    # Calls function to request username
-                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
-                update_operation = {"$set": {"assigned": new_task_user}}
+        if edit_opt == 'u':
+            new_task_user = input("Type new user: ")    # Calls function to request username
+            update_operation = {"$set": {"assigned": new_task_user}}
+            tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
+        elif edit_opt == 'd':
+            new_due_date = datetime.strptime(input("Please enter a new due date (DD MMM YYYY): "), "%d %b %Y")
+            deadline = new_due_date.strftime("%d %b %Y")
+            update_operation = {"$set": {"deadline": deadline}}
+            tasks.update_one(filter_query, update_operation)    # Changes due date in tasks dict
+        elif edit_opt == 'c':                 # Changes status to "Complete"
+            user_input = input("Open or Close task: \n").lower()
+            if user_input == "open" or user_input == "close":
+                update_operation = {"$set": {"status": user_input}}
                 tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
-            elif edit_opt == 'd':
-                new_due_date = datetime.strptime(input("Please enter a new due date (DD MMM YYYY): "), "%d %b %Y")
-                deadline = new_due_date.strftime("%d %b %Y")
-                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
-                update_operation = {"$set": {"deadline": deadline}}
-                tasks.update_one(filter_query, update_operation)    # Changes due date in tasks dict
-            elif edit_opt == 'c':                 # Changes status to "Complete"
-                filter_query = {"assigned": self.username, "title": self.all_tasks[task_nr]["title"]}
-                update_operation = {"$set": {"status": "yes"}}
-                tasks.update_one(filter_query, update_operation)  # Edits coresponding item in tasks dict
-            elif edit_opt == 'r':
-                pass
-        else:
-            print("\nTask has been completed and therefore cannot be edited.")
+            else:
+                print("Incorrect input, try again\n")
+        elif edit_opt == 'r':
+            pass
+        # else:
+            # print("\nTask has been completed and therefore cannot be edited.")
         self.all_tasks = list(tasks.find({"assigned": self.username}, {"_id": 0, "title": 1, "description": 1}))
            
     # Function to create a task for the logged-in user
@@ -88,7 +84,7 @@ class User():
             created = datetime.today().strftime("%d %b %Y")
             tasks.insert_one(
             {"assigned": username, "title": title, "description": description,
-             "created": created, "completed": "n/a", "deadline": deadline, "status": "no"}
+             "created": created, "completed": "n/a", "deadline": deadline, "status": "open"}
             )
         except ValueError:
             print("Incorrect date format. Please try again.")
@@ -131,9 +127,9 @@ class User():
 
         for task in source:
             deadline = datetime.today() > datetime.strptime(task["deadline"], "%d %b %Y")
-            if task["status"].lower() == "yes":    # Counting amount of completed tasks
+            if task["status"].lower() == "close":    # Counting amount of completed tasks
                 compl_tasks += 1
-            elif (task["status"].lower() == "no") and deadline:
+            elif (task["status"].lower() == "open") and deadline:
                 overdue_tasks += 1  # Counting amount of overdue tasks
             
         if total_tasks != 0:    # Avoiding division by zero
@@ -157,7 +153,7 @@ class User():
         elif choice == 3:
             self.update_task()
         elif choice == 4:
-            self.delete_task()
+            self.delete_task(username)
         elif choice == 5:
             self.view_stats(username)
         elif choice == 6:
